@@ -617,6 +617,10 @@
     [
       "8e3b9d39-af3f-4084-8085-42ed0c43ee8f",
       "busmodule"
+    ],
+    [
+      "43a11fbc-a5f2-492a-9d54-90076233dc6e",
+      "ucodestore"
     ]
   ],
   "text_variables": {}

@@ -44,10 +44,5 @@ I am using the following documents to make sense of everything.
 * A more readable [am2901 block diagram](documentation/am2901-blockdiagram.jpg)
 * Bit slice design - controllers and ALUs by [Donnamaie White](https://www.donnamaie.com/) - whose site has a lot of other interesting information.
 * The "Build a microcomputer" series of appnotes, also [on the site of Donnamaie White, here](https://www.donnamaie.com/AMD_2900.html).
-* [A microprogrammed computer](documentation/16-bit%20computer%20book.pdf)
-
-
-
-
-
+* [A microprogrammed computer](documentation/16-bit%20computer%20book.pdf), also from Donnamaie's site.
 

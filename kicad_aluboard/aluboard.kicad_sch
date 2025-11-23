@@ -7410,6 +7410,27 @@
 		)
 		(uuid "7ef0d4c7-ecd4-4997-aae2-5a528c4e3bc6")
 	)
+	(text_box "BUG: ~{OE} must be tied to GND"
+		(exclude_from_sim no)
+		(at 149.86 217.17 0)
+		(size 16.51 7.62)
+		(margins 0.9525 0.9525 0.9525 0.9525)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(type color)
+			(color 255 0 0 1)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "8971784d-bcfa-40d5-8c52-2d6f56b2c706")
+	)
 	(text_box "ALU Dest"
 		(exclude_from_sim no)
 		(at 387.35 77.47 0)
@@ -16225,7 +16246,7 @@
 		)
 		(uuid "05a8cbb4-c72b-447c-a740-070df948cf27")
 	)
-	(label "alulatch"
+	(label "flagslatch"
 		(at 265.43 193.04 0)
 		(effects
 			(font
@@ -16785,7 +16806,7 @@
 		)
 		(uuid "3fe78eb9-6244-4758-b66c-bdada69f93e9")
 	)
-	(label "alulatch"
+	(label "flagslatch"
 		(at 153.67 208.28 0)
 		(effects
 			(font
