@@ -3,5 +3,7 @@ fp-info-cache
 *.lck
 production
 \#auto_saved_files#
+target
+.idea
 
 
