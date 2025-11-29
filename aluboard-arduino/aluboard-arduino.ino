@@ -1,16 +1,18 @@
 #include <stdarg.h>
 
+/********************************************************/
+/*  ALU Board connections to Arduino                    */
+/********************************************************/
 
 #define ARDUINO_A0  54        // Pin number to use A0 as digital port
-
-
-
 
 #define AD0         22              // AD0..15 ALU input/result
 
 #define CTL_CA0     (AD0 + 16)      // Start of CA0 assignments (38)
 #define CTL_CB0     (CTL_CA0 + 4)   // (42)
 #define CTL_CI0     (CTL_CB0 + 4)   // Control signals (46) 
+
+#define CTL_OE      (ARDUINO_A0 + 1)     // OE pin is on analog 1. Analog 0 is CTL.CI8, a control signal for the alu.
 
 #define CTL_CLKAH   (ARDUINO_A0 + 2)
 #define CTL_CLKAL   (ARDUINO_A0 + 3)
@@ -19,11 +21,31 @@
 #define CTL_OP8H    (ARDUINO_A0 + 5)
 #define CTL_OP8L    (ARDUINO_A0 + 6)
 
+#define ACARRYIN    (ARDUINO_A0 + 7)      // ALU Carry in
+#define FLAGSLATCH  (ARDUINO_A0 + 8)      // Flags register latch
 
-#define CTL_OE      (ARDUINO_A0 + 1)     // OE pin is on analog 14
+#define CARRYSEL2   (ARDUINO_A0 + 9)      // Carry flag source. Watch out: reversed!
+#define CARRYSEL1   (ARDUINO_A0 + 10)
+#define CARRYSEL0   (ARDUINO_A0 + 11)
 
 #define CLKN        HIGH
 #define CLKA        LOW
+
+/********************************************************/
+/*  Mode enums for both am2901 and ALU board.           */
+/********************************************************/
+
+
+enum CarrySel {
+  Alu16,                  // 16 bit carry from ALU
+  ARam0,                  // Carry from lhs shift on register
+  AQ0,                    // Carry from low shift on Q register
+  ARam0m,                 // Carry from shift on 8 bit middle of register
+  AQ0m,                   // Carry from shift on middle of Q register
+  ARam3,                  // Carry from high shift register
+  AQ3,                    // Carry from high Q
+  Alu8,                   // Alu carry from lower 8 bits
+};
 
 enum AluSource {
   SrcAQ,
@@ -64,6 +86,12 @@ enum AluOpType {
   Op8H
 };
 
+enum FlagsLatch {
+  /** Keep values inside the latch, do not follow inputs */
+  FlagLatchHold,
+  /** Let input values flow to outputs */
+  FlagLatchOpen             // Man, C is a shit language.
+};
 
 /**
  * Set pinMode for all AD lines to in- or out
@@ -107,14 +135,6 @@ void writeData(int value) {
   digitalWrite(CTL_OE, HIGH);             // Make sure OE is negated
   setADMode(OUTPUT);
   bitsWrite(AD0, 16, value);
-  
-  // for(int i = 0; i < 16; i++) {
-  //   if(value & (1 << i)) {
-  //     digitalWrite(AD0 + i, HIGH);
-  //   } else {
-  //     digitalWrite(AD0 + i, LOW);
-  //   }
-  // }
 }
 
 /**
@@ -194,6 +214,22 @@ void setOE(boolean on) {
   digitalWrite(CTL_OE, on ? LOW : HIGH);
 }
 
+void setCarrySel(CarrySel sel) {
+  digitalWrite(CARRYSEL0, sel & 0x1 ? HIGH : LOW);
+  digitalWrite(CARRYSEL1, sel & 0x2 ? HIGH : LOW);
+  digitalWrite(CARRYSEL2, sel & 0x4 ? HIGH : LOW);
+}
+
+/**
+*/
+void setAluLatch(FlagsLatch val) {
+  digitalWrite(FLAGSLATCH, val == FlagLatchOpen);   // Open is a 1 on that chip
+}
+
+void setAluCarryIn(boolean val) {
+  digitalWrite(ACARRYIN, val);
+}
+
 
 /********************************************************/
 /*  Serial command reader                               */
@@ -201,6 +237,8 @@ void setOE(boolean on) {
 
 #define CMD_ERROR     0x01
 #define CMD_REGISTERS 0x02
+#define CMD_SETREGS   0x03
+#define CMD_ALUOP     0x04
 
 uint8_t readBuffer[259];
 int readIndex;
@@ -221,6 +259,10 @@ int rdWord() {
   int hi = readBuffer[readIndex++];
   int lo = readBuffer[readIndex++];
   return hi << 8 | lo;
+}
+
+boolean rdEof() {
+  return readIndex >= readLen;
 }
 
 
@@ -293,6 +335,9 @@ void replyError(char* message, ...) {
   pktSend();
 }
 
+/**
+ * Output Packet format: just one word per register.
+ */
 void replyRegisters() {
   pktStart(CMD_REGISTERS);
   setAluFunction(FnOr);
@@ -311,6 +356,53 @@ void replyRegisters() {
   }
 
   pktSend();
+}
+
+/**
+ * Input packet: one word per register.
+ * Output packet: empty.
+ */
+void cmdSetRegisters() {
+  for(int i = 0; i < 16; i++) {
+    int regval = rdWord();
+    setAluReg(i, regval);
+  }
+
+  pktStart(CMD_SETREGS);
+  pktSend();
+}
+
+/**
+ * Input packet: [porta][portb][i0..8][opsz][carrysel][carryin]{[datain]}.
+ * Output packet: {registers}x16
+ */
+void cmdAluOperation() {
+  int porta = rdByte();
+  int portb = rdByte();
+  int ictl = rdWord();
+  int opsz = rdByte();
+  int carrysel = rdByte();
+  int carryin = rdByte();
+  boolean withData = !rdEof();
+  int data = 0;
+  if(withData)
+    data = rdWord();
+
+  // all of the packet done.
+  setAluPortA(porta);
+  setAluPortB(portb);
+
+  setAluSrc(ictl & 0x7);
+  setAluFunction((ictl >> 3) & 0x7);
+  setAluDest((ictl >> 6) & 0x7);
+  setCarrySel(carrysel);
+  setAluCarryIn(carryin);
+
+  if(withData)
+    writeData(data);
+  pulseOperation(opsz);                   // Pulse clocks, do the op
+
+  replyRegisters();
 }
 
 
@@ -374,6 +466,14 @@ void packetReader() {
     case CMD_REGISTERS:
       replyRegisters();
       break;
+
+    case CMD_SETREGS:
+      cmdSetRegisters();
+      break;
+
+    case CMD_ALUOP:
+      cmdAluOperation();
+      break;  
   }
 }
 
@@ -398,6 +498,19 @@ void setup() {
   pinMode(CTL_CLKAH, OUTPUT);
   digitalWrite(CTL_CLKAL, LOW);
   digitalWrite(CTL_CLKAH, LOW);
+
+  pinMode(ACARRYIN, OUTPUT);
+  digitalWrite(ACARRYIN, LOW);              // Carry in 0
+
+  pinMode(FLAGSLATCH, OUTPUT);
+  digitalWrite(FLAGSLATCH, HIGH);           // Let flag values roll through (not latched)
+
+  pinMode(CARRYSEL0, OUTPUT);
+  pinMode(CARRYSEL1, OUTPUT);
+  pinMode(CARRYSEL2, OUTPUT);
+  digitalWrite(CARRYSEL0, LOW);
+  digitalWrite(CARRYSEL1, LOW);
+  digitalWrite(CARRYSEL2, LOW);
 
   Serial.begin(19200);
   Serial.setTimeout(5000);

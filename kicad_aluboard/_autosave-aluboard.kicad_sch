@@ -7,7 +7,7 @@
 	(title_block
 		(title "16bit cpu exercise")
 		(date "2025-10-18")
-		(rev "0.1")
+		(rev "0.2")
 		(company "ErrorSort")
 	)
 	(lib_symbols
@@ -7410,6 +7410,27 @@
 			(justify left top)
 		)
 		(uuid "6b211fc7-4c36-4d19-a1ce-ddc95ef10af2")
+	)
+	(text_box "v0.1 BUG: OE led was lighting when OE was negated (+5v)."
+		(exclude_from_sim no)
+		(at 20.32 134.62 0)
+		(size 33.02 7.62)
+		(margins 0.9525 0.9525 0.9525 0.9525)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(type color)
+			(color 255 0 0 1)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "79d14c2f-7484-4c7e-a164-2e67ccb940fb")
 	)
 	(text_box "ALU Function"
 		(exclude_from_sim no)

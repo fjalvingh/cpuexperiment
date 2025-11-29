@@ -14,16 +14,16 @@ public class RegisterPanel extends JPanel {
 	public RegisterPanel() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{14, 196, 14, 196, 0};
-		gridBagLayout.rowHeights = new int[]{0, 19, 0};
+		gridBagLayout.rowHeights = new int[]{0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 
 		JLabel lblRegisters = new JLabel("Registers");
 		lblRegisters.setBackground(UIManager.getColor("TabbedPane.background"));
 		GridBagConstraints gbc_lblRegisters = new GridBagConstraints();
 		gbc_lblRegisters.gridwidth = 4;
-		gbc_lblRegisters.insets = new Insets(0, 0, 5, 5);
+		gbc_lblRegisters.insets = new Insets(0, 0, 5, 0);
 		gbc_lblRegisters.gridx = 1;
 		gbc_lblRegisters.gridy = 0;
 		add(lblRegisters, gbc_lblRegisters);
@@ -31,7 +31,7 @@ public class RegisterPanel extends JPanel {
 		JLabel lblNewLabel = new JLabel("r0");
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 		gbc_lblNewLabel.anchor = GridBagConstraints.WEST;
-		gbc_lblNewLabel.insets = new Insets(0, 0, 0, 5);
+		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNewLabel.gridx = 0;
 		gbc_lblNewLabel.gridy = 1;
 		add(lblNewLabel, gbc_lblNewLabel);
@@ -40,7 +40,7 @@ public class RegisterPanel extends JPanel {
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.anchor = GridBagConstraints.NORTH;
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.insets = new Insets(0, 0, 0, 5);
+		gbc_textField.insets = new Insets(0, 0, 5, 5);
 		gbc_textField.gridx = 1;
 		gbc_textField.gridy = 1;
 		add(textField, gbc_textField);
@@ -49,19 +49,36 @@ public class RegisterPanel extends JPanel {
 		JLabel lblNewLabel_1 = new JLabel("r8");
 		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
 		gbc_lblNewLabel_1.anchor = GridBagConstraints.WEST;
-		gbc_lblNewLabel_1.insets = new Insets(0, 0, 0, 5);
+		gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNewLabel_1.gridx = 2;
 		gbc_lblNewLabel_1.gridy = 1;
 		add(lblNewLabel_1, gbc_lblNewLabel_1);
 
 		textField_1 = new JTextField();
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
+		gbc_textField_1.insets = new Insets(0, 0, 5, 5);
 		gbc_textField_1.anchor = GridBagConstraints.NORTH;
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 3;
 		gbc_textField_1.gridy = 1;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);
+		
+		JButton btnNewButton = new JButton("Read from ALU");
+		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
+		gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
+		gbc_btnNewButton.gridx = 1;
+		gbc_btnNewButton.gridy = 10;
+		gbc_btnNewButton.gridwidth = 4;
+		add(btnNewButton, gbc_btnNewButton);
+		
+		JButton btnSendToAlu = new JButton("Send to ALU");
+		GridBagConstraints gbc_btnSendToAlu = new GridBagConstraints();
+		gbc_btnSendToAlu.insets = new Insets(0, 0, 0, 5);
+		gbc_btnSendToAlu.gridx = 1;
+		gbc_btnSendToAlu.gridy = 11;
+		gbc_btnSendToAlu.gridwidth = 4;
+		add(btnSendToAlu, gbc_btnSendToAlu);
 
 	}
 

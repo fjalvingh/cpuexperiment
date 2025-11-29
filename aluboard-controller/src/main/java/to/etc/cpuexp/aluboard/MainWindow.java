@@ -28,7 +28,7 @@ final public class MainWindow extends JFrame {
 		pack();
 		setVisible(true);
 
-		rp.refresh();
+		rp.readFromRemote();
 	}
 
 

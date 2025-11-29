@@ -15,6 +15,10 @@ final public class SerialApi {
 	/** Get all register value */
 	static private final int CMD_REGISTERS = 0x02;
 
+	static private final int CMD_SETREGS = 0x03;
+
+	static private final int CMD_ALUOPERATION = 0x04;
+
 	private int m_packetLen;
 
 	private int m_lastCommand;
@@ -23,6 +27,9 @@ final public class SerialApi {
 		m_port = port;
 	}
 
+	/**
+	 * Tell the Arduino to read all registers and send their content.
+	 */
 	public int[] getRegisters() {
 		startPacket(CMD_REGISTERS);
 		transactPacket();
@@ -31,6 +38,14 @@ final public class SerialApi {
 			regs[i] = readWord();
 		}
 		return regs;
+	}
+
+	public void writeRegisters(int[] registers) {
+		startPacket(CMD_SETREGS);
+		for(int i = 0; i < registers.length; i++) {
+			writeWord(registers[i]);
+		}
+		transactPacket();								// The command has no data in the response
 	}
 
 	/*----------------------------------------------------------------------*/

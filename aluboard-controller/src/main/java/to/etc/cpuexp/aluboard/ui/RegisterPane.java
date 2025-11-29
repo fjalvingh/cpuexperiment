@@ -36,6 +36,26 @@ public class RegisterPane extends JPanel {
 		for(int i = 0; i < 16; i++) {
 			createPair(i, 1);
 		}
+
+		//-- Buttons
+		JButton btnReadFromAlu = new JButton("Read from ALU");
+		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
+		gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
+		gbc_btnNewButton.gridx = 1;
+		gbc_btnNewButton.gridy = 10;
+		gbc_btnNewButton.gridwidth = 4;
+		add(btnReadFromAlu, gbc_btnNewButton);
+
+		btnReadFromAlu.addActionListener(e -> readFromRemote());
+
+		JButton btnSendToAlu = new JButton("Send to ALU");
+		GridBagConstraints gbc_btnSendToAlu = new GridBagConstraints();
+		gbc_btnSendToAlu.insets = new Insets(0, 0, 0, 5);
+		gbc_btnSendToAlu.gridx = 1;
+		gbc_btnSendToAlu.gridy = 11;
+		gbc_btnSendToAlu.gridwidth = 4;
+		add(btnSendToAlu, gbc_btnSendToAlu);
+		btnSendToAlu.addActionListener(e -> sendToRemote());
 	}
 
 	private void createPair(int i, int yOffset) {
@@ -59,16 +79,31 @@ public class RegisterPane extends JPanel {
 		gbc_textField.gridx = loffset + 1;
 		gbc_textField.gridy = i % 8 + yOffset;
 		add(textField, gbc_textField);
-		textField.setColumns(10);
+		textField.setColumns(4);
+		textField.setDocument(new JHexFieldDocument(4));
 	}
 
-	public void refresh() {
+	public void readFromRemote() {
 		int[] registers = m_serialApi.getRegisters();
 		for(int i = 0; i < 16; i++) {
 			String s = Integer.toHexString(registers[i]);
 			String res = "0000".substring(s.length()) + s.toUpperCase();
 			m_registerOut[i].setText(res);
 		}
+	}
+
+	public void sendToRemote() {
+		int[] regs = new int[16];
+
+		for(int i = 0; i < 16; i++) {
+			String str = m_registerOut[i].getText();
+			if(str.isBlank()) {
+				regs[i] = 0;
+			} else {
+				regs[i] = Integer.parseInt(str, 16);
+			}
+		}
+		m_serialApi.writeRegisters(regs);
 	}
 
 }

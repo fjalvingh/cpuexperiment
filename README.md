@@ -24,9 +24,19 @@ A picture of the completed board:
 
 The wires into the connectors are breadboard patch wires, and they prove to be useless, so the next try is to make real pin header wires to the Arduino.
 
+### Playing with the board
+
+After creating proper cabling between the Arduino and the ALU board:
+
+![proper cabling](recabled.png)
+
+at least everything worked consistently. But writing Arduino programs makes it a bit hard to do a lot of testing. So the next part is to make the Arduino a slave board that gets commands over USB Serial from a Java program. The Java program sends simple packets consisting of a command code, parameter values and a checksum. The Arduino waits for commands on its bus, decodes the packets, then executes the command. After that it sends either an error packet or a response packet back with any results for the command.
+
+These are the programs under aluboard-controller and aluboard-arduino.
 
 ## Progress
 
+* 2025/11/28 Added basic Java GUI and an Arduino program to test the ALU board
 * 2025/11/23 Created this Github repo
 * 2025/10/18 Started the ALU Kicad design
 
