@@ -45,7 +45,7 @@ final public class SerialApi {
 		for(int i = 0; i < registers.length; i++) {
 			writeWord(registers[i]);
 		}
-		transactPacket();								// The command has no data in the response
+		transactPacket();                                // The command has no data in the response
 	}
 
 	/**
@@ -63,10 +63,10 @@ final public class SerialApi {
 		int i08 = (srcCode & 0x7)
 			| ((fnCode & 0x7) << 3)
 			| ((dstCode & 0x7) << 6);
-		writeByte(i08);
+		writeWord(i08);
 		writeByte(szCode);
-		writeByte(0);						// For now, carrysel
-		writeByte(0);						// And carry
+		writeByte(0);                        // For now, carrysel
+		writeByte(0);                        // And carry
 		transactPacket();
 	}
 
@@ -153,19 +153,30 @@ final public class SerialApi {
 
 	static private final long RETRY_TIMEOUT = 30 * 1000L;
 
+	private final StringBuilder m_rxSb = new StringBuilder();
+
 	private void receivePacket() {
 		long ets = System.currentTimeMillis() + PACKET_READ_TIMEOUT;
+		m_rxSb.setLength(0);
 
 		//-- Wait for the 0xaa 0x55
 		int phase = 0;
 		for(; ; ) {
 			int rl = m_port.readBytes(m_rdbuf, 1, 0);
 			if(rl == 1) {
-				System.out.println("BYTE: " + (char) m_rdbuf[0] + " " + m_rdbuf[0]);
+				//System.out.println("BYTE: " + (char) m_rdbuf[0] + " " + m_rdbuf[0]);
 				if((m_rdbuf[0] & 0xff) == 0xaa) {
 					phase = 1;
 				} else if(m_rdbuf[0] == 0x55 && phase == 1) {
 					break;
+				} else {
+					char c = (char) m_rdbuf[0];
+					if(c >= 0x20 && c < 0x80) {
+						m_rxSb.append((char) c);
+					} else if(c == 0x0a) {
+						System.out.println("ArduinoDebug: " + m_rxSb);
+						m_rxSb.setLength(0);
+					}
 				}
 			}
 
@@ -272,7 +283,7 @@ final public class SerialApi {
 		//-- Calculate a checksum
 		int sum = 0;
 		for(int i = 3; i < packet.length; i++) {
-			sum += packet[i];
+			sum += (int)packet[i] & 0xff;
 		}
 		packet[packet.length - 2] = (byte) ((sum >> 8) & 0xff);
 		packet[packet.length - 1] = (byte) (sum & 0xff);

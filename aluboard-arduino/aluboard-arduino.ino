@@ -392,15 +392,23 @@ void cmdAluOperation() {
   setAluPortA(porta);
   setAluPortB(portb);
 
-  setAluSrc(ictl & 0x7);
-  setAluFunction((ictl >> 3) & 0x7);
-  setAluDest((ictl >> 6) & 0x7);
+  int src = ictl & 0x7;
+  setAluSrc(src);
+  int fn = (ictl >> 3) & 0x7;
+  setAluFunction(fn);
+  int dst = (ictl >> 6) & 0x7;
+  setAluDest(dst);
   setCarrySel(carrysel);
   setAluCarryIn(carryin);
 
   if(withData)
     writeData(data);
   pulseOperation(opsz);                   // Pulse clocks, do the op
+
+  char buf[128];
+  sprintf(buf, "aluop: a=%d,b=%d,src=%d,fn=%d,dst=%d,ictl=%x", porta, portb, src, fn, dst, ictl);
+  Serial.println(buf);
+
   pktStart(CMD_ALUOP);
   pktSend();
 }
@@ -443,12 +451,13 @@ void packetReader() {
   for(int i = 0; i < len; i++) {
     sum += readBuffer[i];
   }
-  if(
-    ((sum >> 8) & 0xff) != readBuffer[len]
-    || (sum & 0xff) != readBuffer[len + 1]
-  ) {
+  unsigned int psum = ((int)readBuffer[len] << 8) | (int)readBuffer[len + 1];
+  if(sum != psum) {
     //-- Checksum error, bail out
-    Serial.println("Badsum");
+    Serial.print("Badsum ");
+    Serial.print(psum, 16);
+    Serial.print(" exp ");
+    Serial.println(sum, 16);
     return;
   }
 
