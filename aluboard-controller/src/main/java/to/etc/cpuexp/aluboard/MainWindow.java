@@ -1,6 +1,6 @@
 package to.etc.cpuexp.aluboard;
 
-import to.etc.cpuexp.aluboard.ui.RegisterPane;
+import to.etc.cpuexp.aluboard.ui.MainPanel;
 
 import javax.swing.*;
 
@@ -16,10 +16,8 @@ final public class MainWindow extends JFrame {
 		//getContentPane().add(button);
 		setSize(1024, 768);
 
-		RegisterPane rp = new RegisterPane(m_api);
-		getContentPane().add(rp);
-
-
+		MainPanel mainPanel = new MainPanel(m_api);
+		getContentPane().add(mainPanel);
 
 		//JDisasmPanel dp = new JDisasmPanel(m_source, infoModel, new PdpDisassembler());
 		//dp.setSize(1024, 8192);
@@ -28,7 +26,7 @@ final public class MainWindow extends JFrame {
 		pack();
 		setVisible(true);
 
-		rp.readFromRemote();
+		mainPanel.getRegisterPane().readFromRemote();
 	}
 
 

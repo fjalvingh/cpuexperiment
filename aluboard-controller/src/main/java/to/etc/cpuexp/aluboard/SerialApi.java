@@ -48,6 +48,28 @@ final public class SerialApi {
 		transactPacket();								// The command has no data in the response
 	}
 
+	/**
+	 * Packet format:
+	 * <pre>
+	 *  Input packet: [porta][portb][i0..8][opsz][carrysel][carryin]{[datain]}.
+	 * </pre>
+	 */
+	public void aluAction(int porta, int portb, int srcCode, int fnCode, int dstCode, int szCode) {
+		startPacket(CMD_ALUOPERATION);
+		writeByte(porta);
+		writeByte(portb);
+
+		//-- Construct the i0..8 value
+		int i08 = (srcCode & 0x7)
+			| ((fnCode & 0x7) << 3)
+			| ((dstCode & 0x7) << 6);
+		writeByte(i08);
+		writeByte(szCode);
+		writeByte(0);						// For now, carrysel
+		writeByte(0);						// And carry
+		transactPacket();
+	}
+
 	/*----------------------------------------------------------------------*/
 	/*	CODING:	Exchanging packets											*/
 	/*----------------------------------------------------------------------*/
@@ -257,6 +279,4 @@ final public class SerialApi {
 		packet[2] = (byte) m_packetLen;
 		return packet;
 	}
-
-
 }

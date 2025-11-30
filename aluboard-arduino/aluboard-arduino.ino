@@ -374,7 +374,7 @@ void cmdSetRegisters() {
 
 /**
  * Input packet: [porta][portb][i0..8][opsz][carrysel][carryin]{[datain]}.
- * Output packet: {registers}x16
+ * Output packet: empty
  */
 void cmdAluOperation() {
   int porta = rdByte();
@@ -401,8 +401,8 @@ void cmdAluOperation() {
   if(withData)
     writeData(data);
   pulseOperation(opsz);                   // Pulse clocks, do the op
-
-  replyRegisters();
+  pktStart(CMD_ALUOP);
+  pktSend();
 }
 
 
