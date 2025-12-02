@@ -19,6 +19,10 @@ final public class SerialApi {
 
 	static private final int CMD_ALUOPERATION = 0x04;
 
+	static private final int CMD_INITREGS = 0x05;
+
+	static private final int CMD_ZEROREGS = 0x06;
+
 	private int m_packetLen;
 
 	private int m_lastCommand;
@@ -48,13 +52,23 @@ final public class SerialApi {
 		transactPacket();                                // The command has no data in the response
 	}
 
+	public void registersInit() {
+		startPacket(CMD_INITREGS);
+		transactPacket();
+	}
+
+	public void registersZero() {
+		startPacket(CMD_ZEROREGS);
+		transactPacket();
+	}
+
 	/**
 	 * Packet format:
 	 * <pre>
 	 *  Input packet: [porta][portb][i0..8][opsz][carrysel][carryin]{[datain]}.
 	 * </pre>
 	 */
-	public void aluAction(int porta, int portb, int srcCode, int fnCode, int dstCode, int szCode) {
+	public void aluAction(int porta, int portb, int srcCode, int fnCode, int dstCode, int szCode, int carrySel, int carry) {
 		startPacket(CMD_ALUOPERATION);
 		writeByte(porta);
 		writeByte(portb);
@@ -65,8 +79,8 @@ final public class SerialApi {
 			| ((dstCode & 0x7) << 6);
 		writeWord(i08);
 		writeByte(szCode);
-		writeByte(0);                        // For now, carrysel
-		writeByte(0);                        // And carry
+		writeByte(carrySel);                    // For now, carrysel
+		writeByte(carry);                       // And carry
 		transactPacket();
 	}
 
@@ -290,4 +304,5 @@ final public class SerialApi {
 		packet[2] = (byte) m_packetLen;
 		return packet;
 	}
+
 }

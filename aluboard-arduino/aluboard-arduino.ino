@@ -164,7 +164,7 @@ void setAluDest(AluDest code) {
  * when the clock line is HIGH, and the last data read is retained
  * while clock is low.
  */
-void pulseOperation(AluOpType op) {
+void pulseOperation(AluOpType op, bool latchFlags) {
   switch(op) {
     case Op16:
       digitalWrite(CTL_OP16, HIGH);
@@ -190,9 +190,13 @@ void pulseOperation(AluOpType op) {
 
   if(op == Op16 || op == Op8H)
     digitalWrite(CTL_CLKAH, CLKA);
-  delay(10);
+  delay(1);
+  if(latchFlags)
+    setAluLatch(FlagLatchOpen);
+  
   digitalWrite(CTL_CLKAL, CLKN);
   digitalWrite(CTL_CLKAH, CLKN);
+  setAluLatch(FlagLatchHold);
 }
 
 /**
@@ -204,9 +208,8 @@ void setAluReg(int reg, int value) {
   setAluSrc(SrcD0);                     // Read data from D bus and other part is zero
   setAluFunction(FnOr);                 // Add D plus 0
   setAluDest(DstRamF);                  // Alu result (F) to B
-  pulseOperation(Op16);
-  delay(200);
-
+  pulseOperation(Op16, false);
+  // delay(2);
   setADMode(INPUT);
 }
 
@@ -239,6 +242,8 @@ void setAluCarryIn(boolean val) {
 #define CMD_REGISTERS 0x02
 #define CMD_SETREGS   0x03
 #define CMD_ALUOP     0x04
+#define CMD_INITREGS  0x05
+#define CMD_ZEROREGS  0x06
 
 uint8_t readBuffer[259];
 int readIndex;
@@ -349,9 +354,9 @@ void replyRegisters() {
   for(int i = 0; i < 16; i++) {
     setAluPortA(i);
     setAluPortB(i);
-    pulseOperation(Op16);
+    pulseOperation(Op16, false);
     int rv = readData();
-    delay(100);
+    // delay(100);
     pktWord(rv);
   }
 
@@ -403,7 +408,7 @@ void cmdAluOperation() {
 
   if(withData)
     writeData(data);
-  pulseOperation(opsz);                   // Pulse clocks, do the op
+  pulseOperation(opsz, true);         // Pulse clocks, do the op, latch flags
 
   char buf[128];
   sprintf(buf, "aluop: a=%d,b=%d,src=%d,fn=%d,dst=%d,ictl=%x", porta, portb, src, fn, dst, ictl);
@@ -413,6 +418,19 @@ void cmdAluOperation() {
   pktSend();
 }
 
+void cmdInitRegs() {
+  testSetRegisters();
+  pktStart(CMD_INITREGS);
+  pktSend();
+}
+
+void cmdZeroRegisters() {
+  for(int i = 0; i < 16; i++) {
+    setAluReg(i, 0);
+  }
+  pktStart(CMD_ZEROREGS);
+  pktSend();
+}
 
 /********************************************************/
 /*  Serial receive loop                                 */
@@ -483,10 +501,41 @@ void packetReader() {
     case CMD_ALUOP:
       cmdAluOperation();
       break;  
+
+    case CMD_INITREGS:
+      cmdInitRegs();
+      break;
+
+    case CMD_ZEROREGS:
+      cmdZeroRegisters();
+      break;
   }
 }
 
+int vals[] = {
+  0x1234, // 0
+  0x2345,
+  0x3456,
+  0x4567,
+  0x5678,
+  0x6789,
+  0x789a,
+  0x89ab,
+  0x9abc, // 8
+  0xabcd,
+  0xbcde,
+  0xcdef,
+  0xdef0,
+  0xef01,
+  0xf012,
+  0x0123,
+};
 
+void testSetRegisters() {
+  for(int i = 0; i < 16; i++) {
+    setAluReg(i, vals[i]);
+  }
+}
 
 
 void setup() {
@@ -525,55 +574,6 @@ void setup() {
   Serial.setTimeout(5000);
 }
 
-void block() {
-  while(1)
-    ;
-}
-
-int vals[] = {
-  0x1234, // 0
-  0x2345,
-  0x3456,
-  0x4567,
-  0x5678,
-  0x6789,
-  0x789a,
-  0x89ab,
-  0x9abc, // 8
-  0xabcd,
-  0xbcde,
-  0xcdef,
-  0xdef0,
-  0xef01,
-  0xf012,
-  0x0123,
-};
-
-void testSetRegisters() {
-  for(int i = 0; i < 16; i++) {
-    setAluReg(i, vals[i]);
-  }
-
-  // setAluFunction(FnAdd);
-  // setAluDest(DstNop);
-  // setAluSrc(Src0A);               // 0, A as sources
-  // setOE(true);
-
-  // //-- Read all ALU registers one by one and output on F (data)
-  // for(;;) {
-  //   for(int i = 0; i < 16; i++) {
-  //     setAluPortA(i);
-  //     setAluPortB(i);
-  //     pulseOperation(Op16);
-  //     delay(1000);
-  //   }
-  // }
-}
-
-
-
-
-
 void loop() {
   testSetRegisters();
 
@@ -581,59 +581,4 @@ void loop() {
     packetReader();
   }
 
-  setAluReg(7, 0x1234);
-  setAluReg(5, 0x5678); // 
-  setAluPortA(7);
-  setAluPortB(6);
-  setAluSrc(SrcAB);
-  setAluFunction(FnAdd);
-  setAluDest(DstRamF);
-  digitalWrite(CTL_OE, LOW);
-  
-  block();
-
-  // digitalWrite(CTL_OE, LOW);
-  
-  // put your main code here, to run repeatedly:
-  // setAluReg(0, 0x1234);
-  // setAluReg(1, 0x5678);
-
-  // //-- Add reg A and B
-  // setAluFunction(FnAdd);
-  // setAluSrc(SrcAB);
-  // setAluDest(DstNop);
-  // digitalWrite(CTL_OE, LOW);
-
-  // for(int i = 0; i < 16; i++) {
-  //   setAluPortA(i);
-  //   delay(1000);
-  // }
-
-  // for(int i = 0; i < 16; i++) {
-  //   setAluPortB(i);
-  //   delay(1000);
-  // }
-
-  // for(int i = 0; i < 8; i++) {
-  //   setAluSrc(i);
-  //   delay(1000);
-  // }
-
-  // for(int i = 0; i < 8; i++) {
-  //   setAluFunction(i);
-  //   delay(1000);
-  // }
-  // for(int i = 0; i < 8; i++) {
-  //   setAluDest(i);
-  //   delay(1000);
-  // }
-
-
-
-
-
-
-
-
-  // block();
 }

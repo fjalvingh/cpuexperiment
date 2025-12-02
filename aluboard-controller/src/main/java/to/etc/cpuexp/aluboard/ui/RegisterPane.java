@@ -56,6 +56,24 @@ public class RegisterPane extends JPanel {
 		gbc_btnSendToAlu.gridwidth = 4;
 		add(btnSendToAlu, gbc_btnSendToAlu);
 		btnSendToAlu.addActionListener(e -> sendToRemote());
+
+		JButton btnInitRegs = new JButton("Init regs");
+		GridBagConstraints gbc_btnInitRegs = new GridBagConstraints();
+		gbc_btnInitRegs.insets = new Insets(0, 0, 0, 5);
+		gbc_btnInitRegs.gridx = 1;
+		gbc_btnInitRegs.gridy = 12;
+		gbc_btnInitRegs.gridwidth = 4;
+		add(btnInitRegs, gbc_btnInitRegs);
+		btnInitRegs.addActionListener(e -> m_serialApi.registersInit());
+
+		JButton btnZeroRegs = new JButton("Zero regs");
+		GridBagConstraints gbc_btnZeroRegs = new GridBagConstraints();
+		gbc_btnZeroRegs.insets = new Insets(0, 0, 0, 5);
+		gbc_btnZeroRegs.gridx = 1;
+		gbc_btnZeroRegs.gridy = 13;
+		gbc_btnZeroRegs.gridwidth = 4;
+		add(btnZeroRegs, gbc_btnZeroRegs);
+		btnZeroRegs.addActionListener(e -> m_serialApi.registersZero());
 	}
 
 	private void createPair(int i, int yOffset) {
