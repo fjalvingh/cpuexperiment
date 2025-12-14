@@ -10,7 +10,7 @@ public class RegisterPane extends JPanel {
 
 	private final SerialApi m_serialApi;
 
-	private JTextField[] m_registerOut = new JTextField[16];
+	private JTextField[] m_registerOut = new JTextField[17];
 
 	/**
 	 * Create the panel.
@@ -36,6 +36,7 @@ public class RegisterPane extends JPanel {
 		for(int i = 0; i < 16; i++) {
 			createPair(i, 1);
 		}
+		createPair(0, 9, 16, "Q");
 
 		//-- Buttons
 		JButton btnReadFromAlu = new JButton("Read from ALU");
@@ -77,33 +78,60 @@ public class RegisterPane extends JPanel {
 	}
 
 	private void createPair(int i, int yOffset) {
-		int loffset = i >= 8 ? 2 : 0;
+		createPair(i / 8, i % 8 + yOffset, i, "r" + i);
 
-		JLabel label = new JLabel("r" + i);
+		//int loffset = i >= 8 ? 2 : 0;
+		//
+		//JLabel label = new JLabel(i < 16 ? "r" + i : "Q");
+		//GridBagConstraints labelCs = new GridBagConstraints();
+		//labelCs.anchor = GridBagConstraints.WEST;
+		//labelCs.insets = new Insets(0, 0, 0, 5);
+		//labelCs.gridx = loffset;
+		//labelCs.gridy = i % 8 + yOffset;
+		//add(label, labelCs);
+		//
+		//JTextField textField = new JTextField();
+		//m_registerOut[i] = textField;
+		//
+		//GridBagConstraints gbc_textField = new GridBagConstraints();
+		//gbc_textField.anchor = GridBagConstraints.NORTH;
+		//gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		//gbc_textField.insets = new Insets(0, 0, 0, 5);
+		//gbc_textField.gridx = loffset + 1;
+		//gbc_textField.gridy = i % 8 + yOffset;
+		//add(textField, gbc_textField);
+		//textField.setColumns(4);
+		//textField.setDocument(new JHexFieldDocument(4));
+	}
+
+	private void createPair(int x, int y, int regoffset, String name) {
+		JLabel label = new JLabel(name);
 		GridBagConstraints labelCs = new GridBagConstraints();
 		labelCs.anchor = GridBagConstraints.WEST;
 		labelCs.insets = new Insets(0, 0, 0, 5);
-		labelCs.gridx = loffset;
-		labelCs.gridy = i % 8 + yOffset;
+		labelCs.gridx = x * 2;
+		labelCs.gridy = y;
 		add(label, labelCs);
 
 		JTextField textField = new JTextField();
-		m_registerOut[i] = textField;
+		m_registerOut[regoffset] = textField;
 
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.anchor = GridBagConstraints.NORTH;
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField.insets = new Insets(0, 0, 0, 5);
-		gbc_textField.gridx = loffset + 1;
-		gbc_textField.gridy = i % 8 + yOffset;
+		gbc_textField.gridx = x * 2 + 1;
+		gbc_textField.gridy = y;
 		add(textField, gbc_textField);
 		textField.setColumns(4);
 		textField.setDocument(new JHexFieldDocument(4));
+
 	}
+
 
 	public void readFromRemote() {
 		int[] registers = m_serialApi.getRegisters();
-		for(int i = 0; i < 16; i++) {
+		for(int i = 0; i < 17; i++) {
 			String s = Integer.toHexString(registers[i]);
 			String res = "0000".substring(s.length()) + s.toUpperCase();
 			m_registerOut[i].setText(res);
@@ -111,9 +139,9 @@ public class RegisterPane extends JPanel {
 	}
 
 	public void sendToRemote() {
-		int[] regs = new int[16];
+		int[] regs = new int[17];
 
-		for(int i = 0; i < 16; i++) {
+		for(int i = 0; i < 17; i++) {
 			String str = m_registerOut[i].getText();
 			if(str.isBlank()) {
 				regs[i] = 0;
@@ -123,5 +151,4 @@ public class RegisterPane extends JPanel {
 		}
 		m_serialApi.writeRegisters(regs);
 	}
-
 }

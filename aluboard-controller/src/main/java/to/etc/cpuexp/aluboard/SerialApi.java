@@ -37,7 +37,7 @@ final public class SerialApi {
 	public int[] getRegisters() {
 		startPacket(CMD_REGISTERS);
 		transactPacket();
-		int[] regs = new int[16];
+		int[] regs = new int[18];						// 0..15, Q, Flags
 		for(int i = 0; i < regs.length; i++) {
 			regs[i] = readWord();
 		}
@@ -46,7 +46,7 @@ final public class SerialApi {
 
 	public void writeRegisters(int[] registers) {
 		startPacket(CMD_SETREGS);
-		for(int i = 0; i < registers.length; i++) {
+		for(int i = 0; i < 17; i++) {					// r0..15 and Q
 			writeWord(registers[i]);
 		}
 		transactPacket();                                // The command has no data in the response
