@@ -198,9 +198,10 @@ public class AluActionPanel extends JPanel {
 		JComboBox<RegName> portBC = new JComboBox<>();
 		panel_2.add(portBC);
 		portBC.setModel(new DefaultComboBoxModel<>(RegName.values()));
-		
+
 		JButton btnExecute = new JButton("Execute");
 		btnExecute.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 			}
 		});

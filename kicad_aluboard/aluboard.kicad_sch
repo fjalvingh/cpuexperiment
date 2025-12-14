@@ -7473,6 +7473,27 @@
 		)
 		(uuid "8971784d-bcfa-40d5-8c52-2d6f56b2c706")
 	)
+	(text_box "v 0.1 BUG: Overflow required aovfh and aovfl. Cut p3 and tie to +5V."
+		(exclude_from_sim no)
+		(at 128.27 274.32 0)
+		(size 27.94 7.62)
+		(margins 0.9525 0.9525 0.9525 0.9525)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill
+			(type color)
+			(color 255 0 0 1)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "b917dd7c-d60d-4782-8563-d29caf680d04")
+	)
 	(text_box "ALU Dest"
 		(exclude_from_sim no)
 		(at 387.35 77.47 0)
@@ -7734,12 +7755,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9fd0986b-23d3-4089-8b24-bb61abdc11b6")
-	)
-	(junction
-		(at 158.75 240.03)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "a142a54c-759f-4b68-be9a-6254cb8d508a")
 	)
 	(junction
 		(at 241.3 219.71)
@@ -11244,16 +11259,6 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 240.03) (xy 158.75 240.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4668be97-1014-4681-b913-a1a1bdce66d6")
-	)
-	(wire
-		(pts
 			(xy 369.57 35.56) (xy 372.11 35.56)
 		)
 		(stroke
@@ -11624,7 +11629,7 @@
 	)
 	(wire
 		(pts
-			(xy 158.75 240.03) (xy 161.29 240.03)
+			(xy 156.21 240.03) (xy 161.29 240.03)
 		)
 		(stroke
 			(width 0)
@@ -13972,16 +13977,6 @@
 		)
 		(uuid "b276c342-692a-4631-b0df-4d08cf7efb6b")
 	)
-	(wire
-		(pts
-			(xy 158.75 266.7) (xy 158.75 240.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b281856c-1f7a-4a4a-b277-8c07a5541754")
-	)
 	(bus
 		(pts
 			(xy 91.44 60.96) (xy 91.44 63.5)
@@ -14094,7 +14089,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 250.19) (xy 161.29 250.19)
+			(xy 153.67 250.19) (xy 161.29 250.19)
 		)
 		(stroke
 			(width 0)
@@ -16633,7 +16628,7 @@
 		(uuid "2858169f-570c-497c-831b-125d2ba74116")
 	)
 	(label "op8h"
-		(at 154.94 250.19 0)
+		(at 153.67 250.19 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -20511,6 +20506,72 @@
 			(project ""
 				(path "/e866addb-4a2a-480f-b55f-b2ca43a2318b"
 					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 158.75 266.7 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "29f00ec1-0115-4908-8be8-18ac33d42411")
+		(property "Reference" "#PWR033"
+			(at 158.75 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 158.75 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 158.75 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 158.75 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 158.75 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c66c9442-9e0b-4e15-a751-ef7ac74cfb3a")
+		)
+		(instances
+			(project "aluboard"
+				(path "/e866addb-4a2a-480f-b55f-b2ca43a2318b"
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)

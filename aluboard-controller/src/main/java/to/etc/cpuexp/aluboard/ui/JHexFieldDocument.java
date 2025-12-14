@@ -11,6 +11,7 @@ final public class JHexFieldDocument extends PlainDocument {
 		m_limit = limit;
 	}
 
+	@Override
 	public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
 		if(str == null)
 			return;
