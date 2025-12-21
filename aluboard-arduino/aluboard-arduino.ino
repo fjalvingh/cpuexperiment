@@ -28,6 +28,11 @@
 #define CARRYSEL1   (ARDUINO_A0 + 10)
 #define CARRYSEL0   (ARDUINO_A0 + 11)
 
+#define FLGCARRYL   (ARDUINO_A0 + 12)     // Carry flag, L active
+#define FLGNEGL     (ARDUINO_A0 + 13)
+#define FLGOVFL     (ARDUINO_A0 + 14)
+#define FLGZEROL    (ARDUINO_A0 + 15)
+
 #define CLKN        HIGH
 #define CLKA        LOW
 
@@ -213,6 +218,20 @@ void setAluReg(int reg, int value) {
   setADMode(INPUT);
 }
 
+/**
+ * Set Alu register 0..15 to the specified value
+ */
+void setQReg(int value) {
+  writeData(value);
+  setAluSrc(SrcD0);                     // Read data from D bus and other part is zero
+  setAluFunction(FnOr);                 // Add D plus 0
+  setAluDest(DstQReg);                  // Alu result (F) to Q
+  pulseOperation(Op16, false);
+  // delay(2);
+  setADMode(INPUT);
+}
+
+
 void setOE(boolean on) {
   digitalWrite(CTL_OE, on ? LOW : HIGH);
 }
@@ -231,6 +250,21 @@ void setAluLatch(FlagsLatch val) {
 
 void setAluCarryIn(boolean val) {
   digitalWrite(ACARRYIN, val);
+}
+
+/*
+ * Read the flag register values as a bit pattern.
+*/
+int readFlags() {
+  int carry = digitalRead(FLGCARRYL) == 0;
+  int neg = digitalRead(FLGNEGL) == 0;
+  int ovf = digitalRead(FLGOVFL) == 0;
+  int zero = digitalRead(FLGZEROL) == 0;
+
+  return (zero << 3)
+    | (ovf << 2)
+    | (neg >> 1)
+    | carry;
 }
 
 
@@ -360,6 +394,16 @@ void replyRegisters() {
     pktWord(rv);
   }
 
+  //-- Read the Q register
+  setAluSrc(Src0Q);
+  pulseOperation(Op16, false);
+  int rv = readData();
+  pktWord(rv);
+
+  //-- And read the flags
+  int f = readFlags();
+  pktWord(f);
+
   pktSend();
 }
 
@@ -372,6 +416,8 @@ void cmdSetRegisters() {
     int regval = rdWord();
     setAluReg(i, regval);
   }
+  int qval = rdWord();
+  setQReg(qval);
 
   pktStart(CMD_SETREGS);
   pktSend();
@@ -569,6 +615,11 @@ void setup() {
   digitalWrite(CARRYSEL0, LOW);
   digitalWrite(CARRYSEL1, LOW);
   digitalWrite(CARRYSEL2, LOW);
+
+  pinMode(FLGCARRYL, INPUT);
+  pinMode(FLGNEGL, INPUT);
+  pinMode(FLGOVFL, INPUT);
+  pinMode(FLGZEROL, INPUT);
 
   Serial.begin(19200);
   Serial.setTimeout(5000);

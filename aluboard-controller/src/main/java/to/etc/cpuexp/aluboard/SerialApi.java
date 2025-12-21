@@ -23,6 +23,12 @@ final public class SerialApi {
 
 	static private final int CMD_ZEROREGS = 0x06;
 
+	static public final int FF_ZERO = 0x08;
+	static public final int FF_OVF = 0x04;
+	static public final int FF_NEG = 0x02;
+	static public final int FF_C = 0x01;
+
+
 	private int m_packetLen;
 
 	private int m_lastCommand;

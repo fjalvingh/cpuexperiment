@@ -18912,7 +18912,7 @@
 				)
 			)
 		)
-		(property "Value" "Yellow"
+		(property "Value" "Purple"
 			(at 383.286 66.04 0)
 			(effects
 				(font
@@ -26433,7 +26433,7 @@
 				)
 			)
 		)
-		(property "Value" "Yellow"
+		(property "Value" "Purple"
 			(at 383.286 73.66 0)
 			(effects
 				(font
@@ -29052,7 +29052,7 @@
 				)
 			)
 		)
-		(property "Value" "Yellow"
+		(property "Value" "Purple"
 			(at 383.286 69.85 0)
 			(effects
 				(font

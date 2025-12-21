@@ -12,6 +12,11 @@ public class RegisterPane extends JPanel {
 
 	private JTextField[] m_registerOut = new JTextField[17];
 
+	private JLabel m_zfLabel;
+	private JLabel m_cfLabel;
+	private JLabel m_ovfLabel;
+	private JLabel m_negLabel;
+
 	/**
 	 * Create the panel.
 	 */
@@ -75,33 +80,51 @@ public class RegisterPane extends JPanel {
 		gbc_btnZeroRegs.gridwidth = 4;
 		add(btnZeroRegs, gbc_btnZeroRegs);
 		btnZeroRegs.addActionListener(e -> m_serialApi.registersZero());
+
+		createFlags();
+	}
+
+	private void updateFlags(int fr) {
+		flagColor(m_zfLabel, fr & SerialApi.FF_ZERO);
+		flagColor(m_cfLabel, fr & SerialApi.FF_C);
+		flagColor(m_negLabel, fr & SerialApi.FF_NEG);
+		flagColor(m_ovfLabel, fr & SerialApi.FF_OVF);
+	}
+
+	private void flagColor(JLabel label, int flag) {
+		label.setForeground(flag == 0 ? Color.RED : Color.GREEN);
+	}
+
+	private void createFlags() {
+		JLabel flg = new JLabel("flg");
+		GridBagConstraints flgCs = new GridBagConstraints();
+		flgCs.anchor = GridBagConstraints.WEST;
+		flgCs.insets = new Insets(0, 0, 0, 5);
+		flgCs.gridx = 2;
+		flgCs.gridy = 9;
+		add(flg, flgCs);
+
+		JPanel jp = new JPanel();
+
+		m_zfLabel = new JLabel("Z");
+		m_cfLabel = new JLabel("C");
+		m_negLabel = new JLabel("N");
+		m_ovfLabel = new JLabel("O");
+		jp.add(m_zfLabel);
+		jp.add(m_cfLabel);
+		jp.add(m_negLabel);
+		jp.add(m_ovfLabel);
+
+		GridBagConstraints jpCs = new GridBagConstraints();
+		jpCs.anchor = GridBagConstraints.WEST;
+		jpCs.insets = new Insets(0, 0, 0, 5);
+		jpCs.gridx = 3;
+		jpCs.gridy = 9;
+		add(jp, jpCs);
 	}
 
 	private void createPair(int i, int yOffset) {
 		createPair(i / 8, i % 8 + yOffset, i, "r" + i);
-
-		//int loffset = i >= 8 ? 2 : 0;
-		//
-		//JLabel label = new JLabel(i < 16 ? "r" + i : "Q");
-		//GridBagConstraints labelCs = new GridBagConstraints();
-		//labelCs.anchor = GridBagConstraints.WEST;
-		//labelCs.insets = new Insets(0, 0, 0, 5);
-		//labelCs.gridx = loffset;
-		//labelCs.gridy = i % 8 + yOffset;
-		//add(label, labelCs);
-		//
-		//JTextField textField = new JTextField();
-		//m_registerOut[i] = textField;
-		//
-		//GridBagConstraints gbc_textField = new GridBagConstraints();
-		//gbc_textField.anchor = GridBagConstraints.NORTH;
-		//gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		//gbc_textField.insets = new Insets(0, 0, 0, 5);
-		//gbc_textField.gridx = loffset + 1;
-		//gbc_textField.gridy = i % 8 + yOffset;
-		//add(textField, gbc_textField);
-		//textField.setColumns(4);
-		//textField.setDocument(new JHexFieldDocument(4));
 	}
 
 	private void createPair(int x, int y, int regoffset, String name) {
@@ -125,7 +148,6 @@ public class RegisterPane extends JPanel {
 		add(textField, gbc_textField);
 		textField.setColumns(4);
 		textField.setDocument(new JHexFieldDocument(4));
-
 	}
 
 
@@ -136,6 +158,7 @@ public class RegisterPane extends JPanel {
 			String res = "0000".substring(s.length()) + s.toUpperCase();
 			m_registerOut[i].setText(res);
 		}
+		updateFlags(registers[17]);
 	}
 
 	public void sendToRemote() {
