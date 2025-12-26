@@ -165,9 +165,13 @@ void setAluDest(AluDest code) {
 }
 
 /**
- * Pulse the CLOCK line, to latch data. The data gets latched
- * when the clock line is HIGH, and the last data read is retained
- * while clock is low.
+ * Pulse the CLOCK line.
+ * Description:
+ * - when CLK is HIGH the A and B latches are open, providing 
+ *   data from the registers to the ALU as-is. When CLK is LOW
+ *   the latches are holding the last data, and data is WRITTEN
+ *   into the register designated by B IF a RAM destination is chosen.
+ * - Data gets clocked in Q on the upward edge of the clock.
  */
 void pulseOperation(AluOpType op, bool latchFlags) {
   switch(op) {
@@ -191,17 +195,34 @@ void pulseOperation(AluOpType op, bool latchFlags) {
   }
   //-- Now pulse the required clock lines
   if(op == Op16 || op == Op8L)
-    digitalWrite(CTL_CLKAL, CLKA);
+    digitalWrite(CTL_CLKAL, LOW);              
 
   if(op == Op16 || op == Op8H)
-    digitalWrite(CTL_CLKAH, CLKA);
+    digitalWrite(CTL_CLKAH, LOW);
   delay(1);
-  if(latchFlags)
+
+  //-- We latch the flags while the register data is latched, because that represents the
+  //-- real state. Once the clock is high the data passes through, with the same operation
+  //-- code, so in effect the data on the bus would be the result of the same operation as
+  //-- before, a second time.
+  if(latchFlags) {
     setAluLatch(FlagLatchOpen);
+    delayMicroseconds(100);
+    setAluLatch(FlagLatchHold);
+  }
   
-  digitalWrite(CTL_CLKAL, CLKN);
-  digitalWrite(CTL_CLKAH, CLKN);
-  setAluLatch(FlagLatchHold);
+  digitalWrite(CTL_CLKAL, HIGH);                 //  Low: keep data in latches
+  digitalWrite(CTL_CLKAH, HIGH);
+  // digitalWrite(CTL_OP16, LOW);
+  // digitalWrite(CTL_OP8H, LOW);
+  // digitalWrite(CTL_OP8L, LOW);
+}
+
+void pulseClockLH() {
+    digitalWrite(CTL_CLKAL, LOW);               // Write data to RAM if DEST is RAM
+    digitalWrite(CTL_CLKAH, LOW);
+    digitalWrite(CTL_CLKAL, HIGH);            
+    digitalWrite(CTL_CLKAH, HIGH);
 }
 
 /**
@@ -213,13 +234,17 @@ void setAluReg(int reg, int value) {
   setAluSrc(SrcD0);                     // Read data from D bus and other part is zero
   setAluFunction(FnOr);                 // Add D plus 0
   setAluDest(DstRamF);                  // Alu result (F) to B
-  pulseOperation(Op16, false);
+  
+  //-- Pulse clock to LOW to enter data into the register.
+  pulseClockLH();
+  setAluDest(DstNop);
+  // pulseOperation(Op16, false);
   // delay(2);
   setADMode(INPUT);
 }
 
 /**
- * Set Alu register 0..15 to the specified value
+ * Set the Q reg to the spec'd
  */
 void setQReg(int value) {
   writeData(value);
@@ -227,6 +252,7 @@ void setQReg(int value) {
   setAluFunction(FnOr);                 // Add D plus 0
   setAluDest(DstQReg);                  // Alu result (F) to Q
   pulseOperation(Op16, false);
+  setAluDest(DstNop);
   // delay(2);
   setADMode(INPUT);
 }
@@ -261,9 +287,13 @@ int readFlags() {
   int ovf = digitalRead(FLGOVFL) == 0;
   int zero = digitalRead(FLGZEROL) == 0;
 
+  char buf[60];
+  sprintf(buf, "z=%d,c=%d,n=%d,o=%d\n", zero, carry, neg, ovf);
+  Serial.print(buf);
+
   return (zero << 3)
     | (ovf << 2)
-    | (neg >> 1)
+    | (neg << 1)
     | carry;
 }
 
@@ -379,6 +409,11 @@ void replyError(char* message, ...) {
  */
 void replyRegisters() {
   pktStart(CMD_REGISTERS);
+  
+  //-- Clock needs to be HIGH to allow the A-B latches to pass data
+  digitalWrite(CTL_CLKAL, HIGH);
+  digitalWrite(CTL_CLKAH, HIGH);
+
   setAluFunction(FnOr);
   setAluDest(DstNop);
   setAluSrc(Src0A);               // 0, A as sources
@@ -406,6 +441,42 @@ void replyRegisters() {
 
   pktSend();
 }
+
+void replyRegistersOld() {
+  pktStart(CMD_REGISTERS);
+  
+  //-- Clock needs to be HIGH to allow the A-B latches to pass data
+  digitalWrite(CTL_CLKAL, HIGH);
+  digitalWrite(CTL_CLKAH, HIGH);
+
+  setAluFunction(FnOr);
+  setAluDest(DstNop);
+  setAluSrc(Src0A);               // 0, A as sources
+  setOE(true);
+
+  //-- Read all ALU registers one by one and output on F (data)
+  for(int i = 0; i < 16; i++) {
+    setAluPortA(i);
+    setAluPortB(i);
+    pulseOperation(Op16, false);
+    int rv = readData();
+    // delay(100);
+    pktWord(rv);
+  }
+
+  //-- Read the Q register
+  setAluSrc(Src0Q);
+  pulseOperation(Op16, false);
+  int rv = readData();
+  pktWord(rv);
+
+  //-- And read the flags
+  int f = readFlags();
+  pktWord(f);
+
+  pktSend();
+}
+
 
 /**
  * Input packet: one word per register.
@@ -474,6 +545,7 @@ void cmdZeroRegisters() {
   for(int i = 0; i < 16; i++) {
     setAluReg(i, 0);
   }
+  setQReg(0);
   pktStart(CMD_ZEROREGS);
   pktSend();
 }
@@ -600,14 +672,15 @@ void setup() {
 
   pinMode(CTL_CLKAL, OUTPUT);
   pinMode(CTL_CLKAH, OUTPUT);
-  digitalWrite(CTL_CLKAL, LOW);
+  digitalWrite(CTL_CLKAL, LOW);             // Latched A and B
   digitalWrite(CTL_CLKAH, LOW);
 
   pinMode(ACARRYIN, OUTPUT);
   digitalWrite(ACARRYIN, LOW);              // Carry in 0
 
   pinMode(FLAGSLATCH, OUTPUT);
-  digitalWrite(FLAGSLATCH, HIGH);           // Let flag values roll through (not latched)
+  // digitalWrite(FLAGSLATCH, HIGH);           // Let flag values roll through (not latched)
+  digitalWrite(FLAGSLATCH, LOW);
 
   pinMode(CARRYSEL0, OUTPUT);
   pinMode(CARRYSEL1, OUTPUT);
